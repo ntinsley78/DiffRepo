@@ -102,41 +102,76 @@ public class Recipe
 		int count = 0;
 		while(count < numProcessed)
 		{
-			WordIndex removed = originalTextToBeRemoved.get(indexOforiginalTextToBeRemoved);
-			WordIndex added = endingTextToAdd.get(indexOfendingTextToAdd);
-			
-			if(removed.getIndex() < added.getIndex())
+			WordIndex removed = null;
+			if(indexOforiginalTextToBeRemoved < originalTextToBeRemoved.size())
 			{
-				adjustmentValue = adjustmentValue - removed.getWord().length();
+				removed = originalTextToBeRemoved.get(indexOforiginalTextToBeRemoved);
+			}
+			
+			WordIndex added = null;
+			if(indexOfendingTextToAdd < endingTextToAdd.size())
+			{
+				added = endingTextToAdd.get(indexOfendingTextToAdd);
+			}
+			
+			if(removed != null && added != null && removed.getIndex() < added.getIndex())
+			{
+				System.out.println("Delete item: " + removed.getWord());
+				
 				//delete item
 				items.add(new DeleteItem(removed.getWord(), removed.getIndex() + adjustmentValue));
+				adjustmentValue = adjustmentValue - removed.getWord().length();
 				indexOforiginalTextToBeRemoved++;
 				count++;
 			}
-			else if(added.getIndex() < removed.getIndex())
+			else if(added != null && removed != null && added.getIndex() < removed.getIndex())
 			{
-				adjustmentValue = adjustmentValue + added.getWord().length();
+				System.out.println("Added item: " + added.getWord());
+				
 				//add item
-				items.add(new AddItem(added.getWord(), added.getIndex() + adjustmentValue));
+				items.add(new AddItem(added.getWord(), added.getIndex()/* + adjustmentValue*/));
+				adjustmentValue = adjustmentValue + added.getWord().length();
 				indexOfendingTextToAdd++;
 				count++;
 			}
-			else
+			else  if(added != null && removed != null)
 			{
+				System.out.println("Delete/Add item: " + removed.getWord() + ":" + added.getWord());
+				
 				//delete item first
-				adjustmentValue = adjustmentValue - removed.getWord().length();
 				items.add(new DeleteItem(removed.getWord(), removed.getIndex()/* + adjustmentValue*/));
+				adjustmentValue = adjustmentValue - removed.getWord().length();
 				indexOforiginalTextToBeRemoved++;
 				count++;
 				
 				//add item
-				adjustmentValue = adjustmentValue + added.getWord().length();
 				items.add(new AddItem(added.getWord(), added.getIndex() + adjustmentValue));
+				adjustmentValue = adjustmentValue + added.getWord().length();
 				indexOfendingTextToAdd++;
 				count++;
 			}
-			
-			
+			else  if(added == null && removed != null)
+			{
+				//there is a removed but no added
+				System.out.println("Delete item: " + removed.getWord());
+				
+				//delete item
+				items.add(new DeleteItem(removed.getWord(), removed.getIndex() + adjustmentValue));
+				adjustmentValue = adjustmentValue - removed.getWord().length();
+				indexOforiginalTextToBeRemoved++;
+				count++;
+			}
+			else  if(added != null && removed == null)
+			{
+				System.out.println("Added item: " + added.getWord());
+				
+				//there is an added but not a removed
+				//add item
+				items.add(new AddItem(added.getWord(), added.getIndex()/* + adjustmentValue*/));
+				adjustmentValue = adjustmentValue + added.getWord().length();
+				indexOfendingTextToAdd++;
+				count++;
+			}
 		}
 		
 		return items;
